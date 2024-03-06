@@ -1,0 +1,23 @@
+version: '3.9'
+
+services:
+  #web:
+  #  build: .
+  #  volumes:
+  #    - ./:/container
+  #  depends_on:
+  #    database:
+  #      condition: service_healthy
+  #  ports:
+  #    - 8000:8000
+  #  command: python manage.py runserver 0.0.0.0:8000
+
+  database:
+    build: ./database
+    healthcheck: 
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    ports:
+      - 5432:5432

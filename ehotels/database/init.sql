@@ -144,7 +144,7 @@ INSERT INTO testing_constants (label, value) VALUES
 ('kNumEmployeePerHotel', 10::text),
 ('kNumRoomsPerHotel', 20::text),
 ('kNumClients', 1200::text),
-('kNumReservations', 124::text),
+('kMaxReservationsPerRoom', 50::text),
 ('kNumHCCentralOffices', 4::text),
 ('kNumHCContactEmails', 4::text),
 ('kNumHCContactPhones', 4::text),
@@ -175,6 +175,8 @@ CREATE OR REPLACE FUNCTION validate_new_reservation() RETURNS TRIGGER AS
 $$
 DECLARE
     conflicting_reservations integer;
+    conflicting_start_date DATE;
+    conflicting_end_date DATE;
 BEGIN
     SELECT COUNT(*) FROM reservation WHERE
     reservation.room_id = NEW.room_id AND
@@ -185,8 +187,20 @@ BEGIN
     )
     INTO conflicting_reservations;
 
+    SELECT start_date, end_date FROM reservation WHERE
+    reservation.room_id = NEW.room_id 
+    AND
+    (
+        (NEW.start_date >= reservation.start_date AND NEW.start_date < reservation.end_date)
+    OR 
+        (NEW.end_date > reservation.start_date AND NEW.end_date <= reservation.end_date)
+    )
+    LIMIT 1
+    INTO conflicting_start_date, conflicting_end_date;
+
     IF conflicting_reservations > 0 THEN
-        RAISE EXCEPTION 'reservation [%, %] conflicts with other reservations', NEW.start_date, NEW.end_date;
+        RAISE EXCEPTION 'reservation [%, %] conflicts with reservation [%, %]. Room id: %', NEW.start_date, NEW.end_date, conflicting_start_date, conflicting_end_date, NEW.room_id;
+
     END IF;
 
     RETURN NEW;
@@ -333,6 +347,39 @@ LANGUAGE SQL;
 CREATE OR REPLACE FUNCTION random_client_id() RETURNS integer AS
 $$
     SELECT client.id as random_cid FROM client ORDER BY random() LIMIT 1
+$$
+LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION random_start_and_end_dates(times integer) RETURNS TABLE (start_date DATE, end_date DATE) AS 
+$$
+    WITH RECURSIVE recurse AS (
+        (
+            SELECT d as start_date,
+                   (d + (random() + 0.01) * (interval '100 days'))::DATE as end_date,
+                   1 as counter
+            FROM (
+                SELECT random_date() as d
+            )
+        )
+
+        UNION ALL
+
+        (
+            WITH recurse_inner AS (
+                SELECT * FROM recurse
+            )
+            SELECT new_start_date as start_date,
+                   (new_start_date + (random() + 0.01) * (interval '100 days'))::DATE as end_date,
+                   counter + 1
+            FROM (
+                SELECT MAX(counter) as counter,
+                       (MAX(end_date) + random() * (interval '10 days'))::DATE as new_start_date 
+                FROM recurse_inner
+            )
+            WHERE counter < $1
+        )
+    )
+    SELECT start_date, end_date FROM recurse
 $$
 LANGUAGE SQL;
 
@@ -695,73 +742,36 @@ INSERT INTO client (fullname, adress_id, ssn, registration_date)
     )
     SELECT fullname, adress_id, ssn, registration_date FROM client_info JOIN ssns USING (r);
 
--- INSERT INTO reservation (client_id, room_id, start_date, end_date)
---     WITH RECURSIVE recurse AS (
---         (SELECT cid,
---                 rid,
---                 d as start_date,
---                 (d + random() * (interval '100 days'))::DATE as end_date,
---                 1 as counter
---             FROM ( 
---                 SELECT client.id as cid,
---                        room.id as rid,
---                        random_date() as d 
---                 FROM client, room
---                 ORDER BY random()
---                 LIMIT 1
---             )
---         )
+INSERT INTO reservation (client_id, room_id, start_date, end_date)
+    WITH room_res AS (
+        SELECT rid,
+               start_date,
+               end_date,
+               ROW_NUMBER() OVER () as r
+        FROM (
+            SELECT id as rid,
+                   (random_start_and_end_dates(rand_int_between(1, k('kMaxReservationsPerRoom')::integer))).*
+            FROM (
+                SELECT id FROM room ORDER BY random()
+            )
+        )
+    ),
+    cids AS (
+        SELECT random_client_id() as cid,
+               ROW_NUMBER() OVER () as r
+        FROM (
+            SELECT GENERATE_SERIES(1, (SELECT COUNT(*) FROM room_res))
+        )
+    )
+    SELECT cid,
+           rid,
+           start_date,
+           end_date
+    FROM room_res JOIN cids USING (r);
 
---         UNION ALL
 
---         (SELECT cid,
---                 rid,
---                 start_date,
---                 end_date,
---                 counter + 1
---             FROM (
---                 WITH recurse_inner AS ( 
---                     SELECT * FROM recurse 
---                 ),
---                 output AS (
---                     SELECT rand_cid as cid,
---                            rand_rid as rid,
---                            new_start_date as start_date,
---                            (new_start_date + random() * (interval '100 days'))::DATE as end_date,
---                            counter
---                     FROM (
---                         (
---                             SELECT random_client_id() as rand_cid,
---                                    random_room_id() as rand_rid,
---                                    counter FROM recurse_inner
---                         )
---                         CROSS JOIN LATERAL
---                         (
---                             WITH res AS (
---                                 SELECT rid, MAX(end_date) as new_start_date
---                                 FROM recurse_inner
---                                 GROUP BY rid
---                                 HAVING rid = rand_rid
---                             )
---                             SELECT CASE WHEN NOT EXISTS (SELECT * FROM res)
---                                        THEN random_date() 
---                                        ELSE (SELECT new_start_date FROM res) END
---                         )
---                     )
---                 )
---                 SELECT * FROM output
---             )
---             WHERE counter < k('kNumReservations')::integer
---         )
---     )
---     SELECT cid as client_id,
---            rid as room_id,
---            start_date,
---            end_date
---     FROM recurse;
-
--- -- |rental|
--- INSERT INTO rental (reservation_id) 
---     SELECT id as reservation_id FROM reservation
---     ORDER BY random()
---     LIMIT k('kNumRentals')::integer
+-- |rental|
+INSERT INTO rental (reservation_id) 
+    SELECT id as reservation_id FROM reservation
+    ORDER BY random()
+    LIMIT k('kNumRentals')::integer

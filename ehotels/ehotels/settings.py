@@ -49,10 +49,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-AUTHENTICATION_BACKENDS = [
-    'hms.backends.CustomBackend',  # Add the Python dotted path to your custom backend
-    # 'django.contrib.auth.backends.ModelBackend',  # Default authentication backend
-]
+# AUTHENTICATION_BACKENDS = [
+#     'hms.backends.CustomBackend',  # Add the Python dotted path to your custom backend
+#     # 'django.contrib.auth.backends.ModelBackend',  # Default authentication backend
+# ]
 
 
 ROOT_URLCONF = 'ehotels.urls'

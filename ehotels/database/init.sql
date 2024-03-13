@@ -144,7 +144,7 @@ INSERT INTO testing_constants (label, value) VALUES
 ('kNumEmployeePerHotel', 10::text),
 ('kNumRoomsPerHotel', 20::text),
 ('kNumClients', 1200::text),
-('kMaxReservationsPerRoom', 50::text),
+('kMaxReservationsPerRoom', 10::text),
 ('kNumHCCentralOffices', 4::text),
 ('kNumHCContactEmails', 4::text),
 ('kNumHCContactPhones', 4::text),

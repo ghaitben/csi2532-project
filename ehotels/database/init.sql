@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS adress (
   country_id smallint REFERENCES country(id) ON DELETE SET NULL,
   postalcode text
 );
+CREATE INDEX postalcode_ndx ON adress (postalcode);
 
 -- Hotel chain entity
 CREATE TABLE IF NOT EXISTS hotel_chain (
@@ -171,6 +172,28 @@ END;
 $$
 LANGUAGE PLPGSQL;
 
+CREATE OR REPLACE FUNCTION ensure_unique_manager() RETURNS TRIGGER AS 
+$$
+BEGIN
+    
+    IF (
+        SELECT NOT EXISTS (
+            SELECT employee_id, role
+            FROM 
+            employee JOIN employee_roles ON employee.id = employee_id
+            WHERE employee.works_in = NEW.works_in AND role = 'manager'::employee_role
+        )
+       )
+    THEN
+        RETURN NEW;
+    END IF;
+
+    RAISE EXCEPTION 'Attempting to assign more than one manager to hotel %.', NEW.id;
+    RETURN NULL;
+END;
+$$
+LANGUAGE PLPGSQL;
+
 CREATE OR REPLACE FUNCTION validate_new_reservation() RETURNS TRIGGER AS
 $$
 DECLARE
@@ -199,7 +222,8 @@ BEGIN
     INTO conflicting_start_date, conflicting_end_date;
 
     IF conflicting_reservations > 0 THEN
-        RAISE EXCEPTION 'reservation [%, %] conflicts with reservation [%, %]. Room id: %', NEW.start_date, NEW.end_date, conflicting_start_date, conflicting_end_date, NEW.room_id;
+        RAISE EXCEPTION 'reservation [%, %] conflicts with reservation [%, %]. Room id: %',
+            NEW.start_date, NEW.end_date, conflicting_start_date, conflicting_end_date, NEW.room_id;
 
     END IF;
 
@@ -382,12 +406,6 @@ $$
     SELECT start_date, end_date FROM recurse
 $$
 LANGUAGE SQL;
-
------------------- Triggers ------------------------
-CREATE OR REPLACE TRIGGER check_conflicting_reservation
-    BEFORE INSERT OR UPDATE ON reservation
-    FOR EACH ROW
-        EXECUTE FUNCTION validate_new_reservation();
 
 -- Creating the list of countries.
 -- Credit to: https://gist.github.com/adhipg/1600028
@@ -774,4 +792,16 @@ INSERT INTO reservation (client_id, room_id, start_date, end_date)
 INSERT INTO rental (reservation_id) 
     SELECT id as reservation_id FROM reservation
     ORDER BY random()
-    LIMIT k('kNumRentals')::integer
+    LIMIT k('kNumRentals')::integer;
+
+
+------------------ Triggers ------------------------
+CREATE OR REPLACE TRIGGER check_conflicting_reservation
+    BEFORE INSERT OR UPDATE ON reservation
+    FOR EACH ROW
+        EXECUTE FUNCTION validate_new_reservation();
+
+CREATE OR REPLACE TRIGGER ensure_one_manager_per_hotel
+    BEFORE INSERT OR UPDATE ON employee
+    FOR EACH ROW 
+        EXECUTE FUNCTION ensure_unique_manager();

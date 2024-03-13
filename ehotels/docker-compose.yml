@@ -1,16 +1,16 @@
 version: '3.9'
 
 services:
-  #web:
-  #  build: .
-  #  volumes:
-  #    - ./:/container
-  #  depends_on:
-  #    database:
-  #      condition: service_healthy
-  #  ports:
-  #    - 8000:8000
-  #  command: python manage.py runserver 0.0.0.0:8000
+  web:
+   build: .
+   volumes:
+     - ./:/container
+   depends_on:
+     database:
+       condition: service_healthy
+   ports:
+     - 8000:8000
+   command: python manage.py runserver 0.0.0.0:8000
 
   database:
     build: ./database
@@ -20,4 +20,4 @@ services:
       timeout: 10s
       retries: 10
     ports:
-      - 5432:5432
+      - 5434:5432

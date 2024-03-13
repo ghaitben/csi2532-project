@@ -695,73 +695,73 @@ INSERT INTO client (fullname, adress_id, ssn, registration_date)
     )
     SELECT fullname, adress_id, ssn, registration_date FROM client_info JOIN ssns USING (r);
 
-INSERT INTO reservation (client_id, room_id, start_date, end_date)
-    WITH RECURSIVE recurse AS (
-        (SELECT cid,
-                rid,
-                d as start_date,
-                (d + random() * (interval '100 days'))::DATE as end_date,
-                1 as counter
-            FROM ( 
-                SELECT client.id as cid,
-                       room.id as rid,
-                       random_date() as d 
-                FROM client, room
-                ORDER BY random()
-                LIMIT 1
-            )
-        )
+-- INSERT INTO reservation (client_id, room_id, start_date, end_date)
+--     WITH RECURSIVE recurse AS (
+--         (SELECT cid,
+--                 rid,
+--                 d as start_date,
+--                 (d + random() * (interval '100 days'))::DATE as end_date,
+--                 1 as counter
+--             FROM ( 
+--                 SELECT client.id as cid,
+--                        room.id as rid,
+--                        random_date() as d 
+--                 FROM client, room
+--                 ORDER BY random()
+--                 LIMIT 1
+--             )
+--         )
 
-        UNION ALL
+--         UNION ALL
 
-        (SELECT cid,
-                rid,
-                start_date,
-                end_date,
-                counter + 1
-            FROM (
-                WITH recurse_inner AS ( 
-                    SELECT * FROM recurse 
-                ),
-                output AS (
-                    SELECT rand_cid as cid,
-                           rand_rid as rid,
-                           new_start_date as start_date,
-                           (new_start_date + random() * (interval '100 days'))::DATE as end_date,
-                           counter
-                    FROM (
-                        (
-                            SELECT random_client_id() as rand_cid,
-                                   random_room_id() as rand_rid,
-                                   counter FROM recurse_inner
-                        )
-                        CROSS JOIN LATERAL
-                        (
-                            WITH res AS (
-                                SELECT rid, MAX(end_date) as new_start_date
-                                FROM recurse_inner
-                                GROUP BY rid
-                                HAVING rid = rand_rid
-                            )
-                            SELECT CASE WHEN NOT EXISTS (SELECT * FROM res)
-                                       THEN random_date() 
-                                       ELSE (SELECT new_start_date FROM res) END
-                        )
-                    )
-                )
-                SELECT * FROM output
-            )
-            WHERE counter < k('kNumReservations')::integer
-        )
-    )
-    SELECT cid as client_id,
-           rid as room_id,
-           start_date,
-           end_date
-    FROM recurse;
+--         (SELECT cid,
+--                 rid,
+--                 start_date,
+--                 end_date,
+--                 counter + 1
+--             FROM (
+--                 WITH recurse_inner AS ( 
+--                     SELECT * FROM recurse 
+--                 ),
+--                 output AS (
+--                     SELECT rand_cid as cid,
+--                            rand_rid as rid,
+--                            new_start_date as start_date,
+--                            (new_start_date + random() * (interval '100 days'))::DATE as end_date,
+--                            counter
+--                     FROM (
+--                         (
+--                             SELECT random_client_id() as rand_cid,
+--                                    random_room_id() as rand_rid,
+--                                    counter FROM recurse_inner
+--                         )
+--                         CROSS JOIN LATERAL
+--                         (
+--                             WITH res AS (
+--                                 SELECT rid, MAX(end_date) as new_start_date
+--                                 FROM recurse_inner
+--                                 GROUP BY rid
+--                                 HAVING rid = rand_rid
+--                             )
+--                             SELECT CASE WHEN NOT EXISTS (SELECT * FROM res)
+--                                        THEN random_date() 
+--                                        ELSE (SELECT new_start_date FROM res) END
+--                         )
+--                     )
+--                 )
+--                 SELECT * FROM output
+--             )
+--             WHERE counter < k('kNumReservations')::integer
+--         )
+--     )
+--     SELECT cid as client_id,
+--            rid as room_id,
+--            start_date,
+--            end_date
+--     FROM recurse;
 
--- |rental|
-INSERT INTO rental (reservation_id) 
-    SELECT id as reservation_id FROM reservation
-    ORDER BY random()
-    LIMIT k('kNumRentals')::integer
+-- -- |rental|
+-- INSERT INTO rental (reservation_id) 
+--     SELECT id as reservation_id FROM reservation
+--     ORDER BY random()
+--     LIMIT k('kNumRentals')::integer

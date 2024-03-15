@@ -49,6 +49,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# AUTHENTICATION_BACKENDS = [
+#     'hms.backends.CustomBackend',  # Add the Python dotted path to your custom backend
+#     # 'django.contrib.auth.backends.ModelBackend',  # Default authentication backend
+# ]
+
+
 ROOT_URLCONF = 'ehotels.urls'
 
 TEMPLATES = [
@@ -76,6 +82,11 @@ WSGI_APPLICATION = 'ehotels.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
+        'NAME' : 'maindb',
+        'USER' : 'postgres',
+        'PASSWORD' : 'mainpassword',
+        'HOST' : 'database',
+        'PORT' : '5432'
     }
 }
 

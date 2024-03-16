@@ -805,3 +805,21 @@ CREATE OR REPLACE TRIGGER ensure_one_manager_per_hotel
     BEFORE INSERT OR UPDATE ON employee
     FOR EACH ROW 
         EXECUTE FUNCTION ensure_unique_manager();
+
+------------------ Views ------------------------
+CREATE OR REPLACE VIEW room_capacities_per_hotel AS
+    SELECT hotel.id as hid,
+           capacity 
+    FROM room JOIN hotel ON room.hotel_id = hotel.id;
+
+
+CREATE OR REPLACE VIEW available_rooms_per_zone AS 
+    SELECT room.id as rid,
+           reservation.start_date as res_start_date,
+           reservation.end_date as res_end_date,
+           country.name as country_name
+    FROM room 
+    JOIN hotel ON room.hotel_id = hotel.id
+    JOIN reservation ON room.id = reservation.room_id
+    JOIN adress ON hotel.adress_id = adress.id
+    JOIN country ON adress.country_id = country.id;

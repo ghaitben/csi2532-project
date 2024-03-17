@@ -43,7 +43,8 @@ export default function LoginForm() {
                 return;
             }
 
-            login(formData.get('fullname'));
+            localStorage.setItem('user', formData.get('fullname'));
+            login(localStorage.getItem('user'));
 
             router.push("/");
             // just in case this router thing returns.

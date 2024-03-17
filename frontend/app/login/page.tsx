@@ -3,7 +3,7 @@ import React, { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../authentication";
 
-export default function LoginForm({ successful_registration }) {
+export default function LoginForm() {
     const [isEmployeeLogin, setEmployeeLogin] = useState<boolean>(false);
     const [error, setError] = useState<string[] | null>(null);
     const { user, login, logout } = useAuth();
@@ -78,11 +78,6 @@ export default function LoginForm({ successful_registration }) {
                       })}
                     </ul>
                   </div>
-                </div>
-            )}
-            {successful_registration && (
-                <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
-                  Registration successful!
                 </div>
             )}
             <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">

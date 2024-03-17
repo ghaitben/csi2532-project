@@ -283,7 +283,7 @@ export default function RegistrationForm() {
             return;
         }
 
-        router.push("/login", { successful_registration : true });
+        router.push("/login");
     }
 
     return (

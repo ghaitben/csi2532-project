@@ -1,10 +1,12 @@
 "use client";
 import React, { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../authentication";
 
-export default function LoginForm() {
+export default function LoginForm({ successful_registration }) {
     const [isEmployeeLogin, setEmployeeLogin] = useState<boolean>(false);
     const [error, setError] = useState<string[] | null>(null);
+    const { user, login, logout } = useAuth();
     const router = useRouter();
 
     async function onSubmit(event: FormEvent<HTMLFormEvent>) {
@@ -35,13 +37,13 @@ export default function LoginForm() {
                 body: JSON.stringify(payload)
             });
 
-            console.log(res);
-
             if (!res.ok) {
                 errs.push("Invalid credentials.");
                 setError(errs);
                 return;
             }
+
+            login(formData.get('fullname'));
 
             router.push("/");
             // just in case this router thing returns.
@@ -76,6 +78,11 @@ export default function LoginForm() {
                       })}
                     </ul>
                   </div>
+                </div>
+            )}
+            {successful_registration && (
+                <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+                  Registration successful!
                 </div>
             )}
             <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">

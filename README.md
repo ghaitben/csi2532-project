@@ -23,10 +23,10 @@ This documentation provides details on how to use the API endpoints for client r
 - **Request Body Parameters:**
   - `fullname` (string, required): Full name of the client.
   - `ssn` (string, required): Social security number of the client.
-  - `street` (string): Street address of the client.
-  - `city` (string): City of residence of the client.
-  - `country` (string): Country of residence of the client.
-  - `postal_code` (string): Postal code of the client's address.
+  - `street` (string، required): Street address of the client.
+  - `city` (string, required): City of residence of the client.
+  - `country` (string, required): Country of residence of the client.
+  - `postal_code` (string, required): Postal code of the client's address.
 - **Response:**
   - `201 Created`: Client registered successfully.
   - `400 Bad Request`: Missing required fields.

@@ -3,6 +3,7 @@
 import React, { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
+
 function CountryList() {
     return [
         "AFGHANISTAN",
@@ -247,12 +248,16 @@ function CountryList() {
     ];
 }
 
-export default function RegistrationForm() {
-    const [isEmployeeRegistration, setEmployeeRegistration] = useState<boolean>(false);
+
+export default function RoomSearchForm() {
+    const [rooms, setRooms] = useState([]);
     const [error, setError] = useState<string[] | null>(null);
     const router = useRouter();
     function  getHotelChains (){
         return ['marriot' , 'farimont' ,'Hilton' ];
+    }
+    function isEmpty(o:any){
+        return o===undefined || o===null ||o==='';
     }
     async function onSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -261,21 +266,10 @@ export default function RegistrationForm() {
 
         const formData = new FormData(event.currentTarget);
 
-        if ([...formData.get('ssn')].some((c) => !(c >= '0' && c <= '9'))) {
-            errs.push("SSN field must only contain digits.");
-        }
-        if (formData.get('ssn').length != 9) {
-            errs.push("SSN field must be of length 9.");
-        }
-
-        if (errs.length != 0) {
-            setError(errs);
-            return;
-        }
 
         let payload = {};
-        formData.forEach((value, key) => payload[key] = value);
-        const res = await fetch("http://localhost:8000/hms/register", {
+        formData.forEach((value, key) => { if (!isEmpty(value)) payload[key] = value});
+        const res = await fetch("http://localhost:8000/hms/search_rooms", {
             method: 'POST',
             body: JSON.stringify(payload)
         });
@@ -284,8 +278,9 @@ export default function RegistrationForm() {
             errs.push("Failed to commit registration. Try again in a few seconds.");
             return;
         }
+        setRooms(res.data);
 
-        router.push("/login");
+        
     }
 
     return (
@@ -372,12 +367,53 @@ export default function RegistrationForm() {
                             <input type="number"  name="total_rooms" id="total_rooms" className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="" required="required" />
                         </div>
                         <button type="submit" className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Search rooms</button>
-                        <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                            Already have an account? <a href="/login" className="font-medium text-primary-600 hover:underline dark:text-primary-500">Login here</a>
-                        </p>
                     </form>
                 </div>
             </div>
+        </div>
+        <div>
+            <table>
+                <tr>
+                    <th>Hotel Id</th>
+                    <th>Chain name</th>
+                    <th>Rating</th>
+                    <th>Price per day</th>
+                    <th>Capacity</th>
+                    <th>Country</th>
+                    <th>City</th>
+                    <th>Street</th>
+                </tr>
+                {rooms.map((room, ndx) => {
+                                return (
+                                <tr>
+                                    <td>
+                                        {room.hotel_id}
+                                    </td>
+                                    <td>
+                                        {room.chain_name}
+                                    </td>
+                                    <td>
+                                        {room.hotel_rating}
+                                    </td>
+                                    <td>
+                                        {room.price_per_day}
+                                    </td>
+                                    <td>
+                                        {room.capacity}
+                                    </td>
+                                    <td>
+                                        {room.country}
+                                    </td>
+                                    <td>
+                                        {room.city}
+                                    </td>
+                                    <td>
+                                        {room.street}
+                                    </td>
+                                </tr>
+                                );
+                            })}
+            </table>
         </div>
       </section>
     );

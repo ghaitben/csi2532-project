@@ -33,6 +33,25 @@ This documentation provides details on how to use the API endpoints for client r
   - `201 Created`: Client registered successfully.
   - `400 Bad Request`: Missing required fields.
   - `405 Method Not Allowed`: Only `POST` method allowed.
+ 
+Register Endpoint
+
+    Sample JSON Body:
+
+    json
+
+    {
+        "fullname": "John Doe",
+        "ssn": "123-45-6789",
+        "street": "123 Main Street",
+        "city": "Exampleville",
+        "country": "Exampleland",
+        "postal_code": "12345",
+        "user_type": "client",
+        "hotel_id": 1 //does not affect behavior when user_type is "client"
+    }
+
+    This JSON body registers a new client named "John Doe" with the provided address details in Exampleville, Exampleland. The user is associated with a specific hotel identified by the hotel ID.
 
 ## 2. Login User
 
@@ -47,6 +66,21 @@ This documentation provides details on how to use the API endpoints for client r
   - `200 OK`: Client login successful. Response includes `user_id`.
   - `401 Unauthorized`: Client login failed.
   - `405 Method Not Allowed`: Only `POST` method allowed.
+
+Login Endpoint
+
+    Sample JSON Body:
+
+    json
+
+    {
+        "fullname": "John Doe",
+        "ssn": "123-45-6789",
+        "user_type": "client"
+    }
+
+    This JSON body attempts to log in a client named "John Doe" with the provided SSN. If the credentials are correct, the user is logged in successfully.
+
 
 ## 3. Search Rooms
 
@@ -70,6 +104,43 @@ This documentation provides details on how to use the API endpoints for client r
   - `401 Unauthorized`: Client authentication failed.
   - `405 Method Not Allowed`: Only `GET` method allowed.
  
+Search Rooms Endpoint
+
+    Sample JSON Body:
+
+    json
+
+    {
+        "user_id": 123,
+        "user_type": "client",
+        "country_name": "Exampleland",
+        "city": "Exampleville",
+        "hotel_chain_name": "Example Hotel Group",
+        "hotel_rating": 4,
+        "capacity": 2,
+        "room_price": 100,
+        "total_rooms": 5,
+        "res_start_date": "2024-04-01",
+        "res_end_date": "2024-04-05"
+    }
+
+    This JSON body represents a room search request by a client in Exampleville, Exampleland, looking for rooms in hotels owned by the "Example Hotel Group" with a rating of 4 or higher, having a capacity of 2 people, priced at $100 per day, with a total of 5 rooms available. The search is conducted for the specified reservation dates.
+
+
+     Sample Json body with most optional criteria omitted
+     
+     json
+
+    {
+        "user_id": 123,
+        "user_type": "client",
+        "country_name": "Exampleland",
+        "city": "Exampleville",
+        "res_start_date": "2024-04-01",
+        "res_end_date": "2024-04-05"
+    }
+
+ 
 ### 4. Reserve Room
   - **URL:** `/reserve_room`
   - **Method:** `POST`
@@ -84,3 +155,19 @@ This documentation provides details on how to use the API endpoints for client r
   - **Response:**
     - `200 OK`: Reservation successful. Response includes the `ID` of the newly created reservation.
 
+Reserve Room Endpoint
+
+    Sample JSON Body:
+
+    json
+
+    {
+      "user_id": 123,
+      "user_type": "client",
+      "room_id": 456,
+      "client_id": 789,
+      "start_date": "2024-04-01",
+      "end_date": "2024-04-05"
+    }
+
+This JSON body represents a room reservation request by a client with the specified room ID (456) and client ID (789) for the reservation period from April 1, 2024, to April 5, 2024.

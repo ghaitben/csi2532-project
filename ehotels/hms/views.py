@@ -4,19 +4,26 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 
 # Set of authenticated users
-auth_users = set()
+auth_clients = set()
+auth_employees = set()
 
 @csrf_exempt
-def register_client(request):
+def register(request):
     if request.method == 'POST':
         data = json.loads(request.body)
+        
+        #user type optional for client to maintain backwards compatibility
+        user_type = data.get('user_type', None) 
         fullname = data.get('fullname')
         ssn = data.get('ssn')
+        
         
         address_street = data.get('street')
         address_city = data.get("city")
         address_country = data.get("country")
         address_postal_code = data.get("postal_code")
+        hotel_id = data.get("hotel_id", None)
+        
         
         if fullname and ssn:
             with connection.cursor() as cursor:
@@ -28,11 +35,20 @@ def register_client(request):
                 address_id = cursor.fetchone()[0]
                 
                 # Insert client
-                cursor.execute(
-                    "INSERT INTO client (fullname, adress_id, ssn) VALUES (%s, %s, %s)",
-                    [fullname, address_id, ssn]
-                )
-                return JsonResponse({"message": "Client registered successfully"}, status=201)
+                if user_type == "client" or not user_type:
+                    cursor.execute(
+                        "INSERT INTO client (fullname, adress_id, ssn) VALUES (%s, %s, %s)",
+                        [fullname, address_id, ssn]
+                    )
+                    return JsonResponse({"message": "Client registered successfully"}, status=201)
+                
+                elif user_type == "employee": 
+                    cursor.execute(
+                        "INSERT INTO employee (fullname, adress_id, ssn, works_in) VALUES (%s, %s, %s, %s)",
+                        [fullname, address_id, ssn, hotel_id]
+                    )
+                    return JsonResponse({"message": "Employee registered successfully"}, status=201)
+                    
         else:
             return JsonResponse({"message": "Missing required fields"}, status=400)
     else:
@@ -40,28 +56,32 @@ def register_client(request):
 
 
 @csrf_exempt
-def login_client(request):
+def login_user(request):
     if request.method == 'POST':
         data = json.loads(request.body)
+        
+        #user type optional for client to maintain backwards compatibility
+        user_type = data.get("user_type", None)
         fullname = data.get('fullname')
         ssn = data.get('ssn')
         
-        user_id = authenticate(fullname, ssn)
+        user_id = authenticate(fullname, ssn, user_type)
         
         if user_id:
-            login(user_id)  
-            return JsonResponse({"message": "Client login successful", "user_id": user_id}, status=200)
+            login(user_id, user_type)  
+            return JsonResponse({"message": "User login successful", "user_id": user_id}, status=200)
         else:
-            return JsonResponse({"message": "Client login failed"}, status=401)
+            return JsonResponse({"message": "User login failed"}, status=401)
     else:
         return JsonResponse({"message": "Method not allowed"}, status=405)
-
+    
 
 def search_rooms(request):
     if request.method == 'GET':
         data = json.loads(request.body)
+        user_type = data.get("user_type", None)
         
-        if is_authenticated(data.get("user_id")):
+        if is_authenticated(data.get("user_id"), user_type):
             # Extract search parameters
             country_name = data.get('country_name', '')
             city = data.get('city', '')
@@ -139,14 +159,50 @@ def search_rooms(request):
             return JsonResponse(response_data, safe=False)
         else:
             return JsonResponse({"message": "Client authentication failed"}, status=401)
+        
+def reserve_room(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user_type = data.get("user_type", None)
+        
+        if is_authenticated(data.get("user_id"), user_type):
+            # Extract search parameters
+            room_id = data.get('room_id', None)
+            client_id = data.get('client_id', None)
+            start_date = data.get('start_date', None)
+            end_date = data.get('end_date', None)
+            
+            if room_id and client_id and start_date and end_date:
+                with connection.cursor() as cursor:
+                # Insert address
+                    cursor.execute(
+                        "INSERT INTO reservation (client_id, room_id, start_date, end_date) VALUES (%s, %s, %s, %s) RETURNING id",
+                        [client_id, room_id, start_date, end_date]
+                    )
+                    reservation_id = cursor.fetchone()[0]
+            
+                return JsonResponse({"message": "Reservation success", "reservation_id": reservation_id}, status=200)
+            else:
+                return JsonResponse({"message": "Missing required fields"}, status=400)
+        else:
+            return JsonResponse({"message": "Client authentication failed"}, status=401)
+            
+                
     
 
-def authenticate(fullname, ssn):
-    query = """
-            SELECT c.id, c.fullname
-            FROM client c
-            WHERE c.fullname = %s AND c.ssn = %s
+def authenticate(fullname, ssn, user_type):
+    
+    if user_type == "employee":
+        user_table = "employee"
+    elif user_type == "client" or not user_type:
+        user_table = "client"
+    
+    query = f"""
+            SELECT id, fullname
+            FROM {user_table}
+            WHERE fullname = %s AND ssn = %s
         """
+        
     with connection.cursor() as cursor:
         cursor.execute(query, [fullname, ssn])
         row = cursor.fetchone()
@@ -154,11 +210,24 @@ def authenticate(fullname, ssn):
             return row[0] 
         return None
     
-def login(user_id):
-    auth_users.add(user_id)
-
-def logout(user_id):
-    auth_users.remove(user_id)
+def login(user_id, user_type):
     
-def is_authenticated(user_id):
-    return user_id in auth_users
+    if user_type == "client" or not user_type:
+        auth_clients.add(user_id)
+    elif  user_type == "employee":
+        auth_employees.add(user_id)
+        
+
+def logout(user_id, user_type):
+    
+    if user_type == "client" or not user_type:
+        auth_clients.remove(user_id)
+    elif  user_type == "employee":
+        auth_employees.remove(user_id)
+    
+def is_authenticated(user_id, user_type=None):
+    
+    if user_type == "client" or not user_type:
+        return user_id in auth_clients
+    elif  user_type == "employee":
+        return user_id in auth_employees

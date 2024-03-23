@@ -42,7 +42,7 @@ Register Endpoint
 
     {
         "fullname": "John Doe",
-        "ssn": "123-45-6789",
+        "ssn": "123456789",
         "street": "123 Main Street",
         "city": "Exampleville",
         "country": "Exampleland",
@@ -75,7 +75,7 @@ Login Endpoint
 
     {
         "fullname": "John Doe",
-        "ssn": "123-45-6789",
+        "ssn": "123456789",
         "user_type": "client"
     }
 

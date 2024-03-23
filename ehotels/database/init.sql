@@ -131,7 +131,8 @@ CREATE TABLE IF NOT EXISTS reservation (
 -- Rental entity
 CREATE TABLE IF NOT EXISTS rental (
     id serial PRIMARY KEY,
-    reservation_id integer REFERENCES reservation(id) ON DELETE SET NULL
+    reservation_id integer REFERENCES reservation(id) ON DELETE SET NULL,
+    payment integer CHECK (payment > 0)
 );
 
 ---------------------------- POPULATING THE DATABASE ------------------------
@@ -801,10 +802,10 @@ CREATE OR REPLACE TRIGGER check_conflicting_reservation
     FOR EACH ROW
         EXECUTE FUNCTION validate_new_reservation();
 
-CREATE OR REPLACE TRIGGER ensure_one_manager_per_hotel
-    BEFORE INSERT OR UPDATE ON employee
-    FOR EACH ROW 
-        EXECUTE FUNCTION ensure_unique_manager();
+-- CREATE OR REPLACE TRIGGER ensure_one_manager_per_hotel
+--     BEFORE INSERT OR UPDATE ON employee
+--     FOR EACH ROW 
+--         EXECUTE FUNCTION ensure_unique_manager();
 
 ------------------ Views ------------------------
 CREATE OR REPLACE VIEW room_capacities_per_hotel AS

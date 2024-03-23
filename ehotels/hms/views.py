@@ -187,7 +187,36 @@ def reserve_room(request):
         else:
             return JsonResponse({"message": "Client authentication failed"}, status=401)
             
-                
+def rent_room(request):
+    
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user_type = data.get("user_type", None)
+        
+        # Only employees are able to change reservations into rentals anc accept payment
+        if is_authenticated(data.get("user_id"), user_type) and user_type == "employee":
+            # Extract rental parameters
+            reservation_id = data.get('reservation_id', None)
+            payment = data.get('payment', None)
+        
+            if reservation_id and payment:
+                with connection.cursor() as cursor:
+                # Insert rental
+                    cursor.execute(
+                        "INSERT INTO rental (reservation_id, payment) VALUES (%s, %s) RETURNING id",
+                        [reservation_id, payment]
+                    )
+                    rental_id = cursor.fetchone()[0]
+            
+                return JsonResponse({"message": "Rental success", "rental": rental_id}, status=200)
+            else:
+                return JsonResponse({"message": "Missing required fields"}, status=400)
+        else:
+            return JsonResponse({"message": "Client authentication failed"}, status=401)
+    
+    
+    pass
+       
     
 
 def authenticate(fullname, ssn, user_type):

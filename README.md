@@ -171,3 +171,34 @@ Reserve Room Endpoint
     }
 
 This JSON body represents a room reservation request by a client with the specified room ID (456) and client ID (789) for the reservation period from April 1, 2024, to April 5, 2024.
+
+
+### 5.Rent Room
+
+    URL: /rent_room
+    Method: POST
+    Description: Rents a room for a specified reservation.
+    Request Body Parameters:
+        user_id (integer): The ID of the user making the rental.
+        user_type (string, optional): The type of user making the rental. Only employees are allowed to rent rooms. Default is "client".
+        reservation_id (integer): The ID of the reservation to be rented.
+        payment (float): The payment amount for the rental.
+    Response:
+        200 OK: Rental successful. Response includes the ID of the newly created rental.
+
+     json
+
+    {
+    "message": "Rental success",
+    "rental": 12345
+    }
+
+400 Bad Request: Missing required fields in the request body.
+
+    json
+
+    {
+    "message": "Missing required fields"
+    }
+
+401 Unauthorized: Client authentication failed.

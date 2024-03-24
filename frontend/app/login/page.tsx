@@ -29,30 +29,27 @@ export default function LoginForm() {
             return;
         }
 
-        if (!isEmployeeLogin) {
-            let payload = {};
-            formData.forEach((value, key) => payload[key] = value);
-            const res = await fetch("http://localhost:8000/hms/login", {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
+        let payload = {};
+        formData.forEach((value, key) => payload[key] = value);
+        payload['user_type'] = isEmployeeLogin ? 'employee' : 'client';
 
-            if (!res.ok) {
-                errs.push("Invalid credentials.");
-                setError(errs);
-                return;
-            }
+        formData.forEach((value, key) => payload[key] = value);
+        const res = await fetch("http://localhost:8000/hms/login", {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
 
-            localStorage.setItem('user', formData.get('fullname'));
-            login(localStorage.getItem('user'));
-
-            router.push("/");
-            // just in case this router thing returns.
+        if (!res.ok) {
+            errs.push("Invalid credentials.");
+            setError(errs);
             return;
         }
 
-        errs.push("Employee Login not supported.");
-        setError(errs);
+        localStorage.setItem('user', formData.get('fullname'));
+        login(localStorage.getItem('user'));
+
+        router.push("/");
+        // just in case this router thing returns.
         return;
     }
 

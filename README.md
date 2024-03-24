@@ -3,13 +3,216 @@
 ## Running the front end
 Run `cd $PROJECT_ROOT/frontend && npm run dev`.
 
-## ER diagram
-TODO: miloudi
-
 ## SQL schemas
-TODO: miloudi
+
+### country
+|Attribute  |Type                         |Constraints
+|-----------|-----------------------------|-----------------------------
+|id         |SERIAL                       |PRIMARY KEY          
+|name       |text                         |
+
+### adress
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|id                            |SERIAL                              |PRIMARY KEY   
+|street                        |text                                |
+|city                          |text                                |
+|country_id                    |integer                             |FOREIGN KEY REFERENCES Country(id)
+|postalcode                    |text                                |
+
+### hotel_chain
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|id                            |SERIAL                              |PRIMARY KEY   
+|name                          |text                                |
+
+### hotel_chain_central_offices
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|hotel_chain_id                |SERIAL                              |FOREIGN KEY REFERENCES hotel_chain(id) ON DELETE CASCADE   
+|adress_id                     |integer                             |FOREIGN KEY REFERENCES adress(id) ON DELETE SET NULL
+
+### hotel_chain_contact_emails
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|hotel_chain_id                |SERIAL                              |FOREIGN KEY REFERENCES hotel_chain(id) ON DELETE CASCADE   
+|email                         |text                                |
+
+### hotel_chain_contact_numbers
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|hotel_chain_id                |SERIAL                              |FOREIGN KEY REFERENCES hotel_chain(id) ON DELETE CASCADE   
+|phone                         |text                                |
+
+### hotel
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|id                            |SERIAL                              |PRIMARY KEY
+|hotel_chain_id                |SERIAL                              |FOREIGN KEY REFERENCES hotel_chain(id) ON DELETE CASCADE   
+|adress_id                     |integer                             |FOREIGN KEY REFERENES adress(id) ON DELETE SET NULL
+|rating                        |integer                             |
+
+### hotel_contact_emails
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|hotel_id                      |SERIAL                              |FOREIGN KEY REFERENCES hotel_chain(id) ON DELETE CASCADE   
+|email                         |text                                |
+
+### hotel_contact_numbers
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|hotel_id                      |SERIAL                              |FOREIGN KEY REFERENCES hotel_chain(id) ON DELETE CASCADE   
+|phone                         |text                                |
+
+### employee
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|id                            |SERIAL                              |PRIMARY KEY   
+|ssn                           |text                                |
+|fullname                      |text                                |
+|adress_id                     |integer                             |FOREIGN KEY REFERENCES adress(id) ON DELETE SET NULL
+|works_in                      |SERIAL                              |FOREIGN KEY REFERENCES hotel(id) ON DELETE CASCADE
 
 
+### employee_roles
+```sql
+CREATE TYPE employee_role AS ENUM ('manager', 'director', 'receptionist');
+```
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|employee_id                   |SERIAL                              |FOREIGN KEY REFERENCES employee(id) ON DELETE CASCADE
+|role                          |employee_role                       |
+
+### room
+```sql
+CREATE TYPE room_capacity AS ENUM ('simple', 'double');
+CREATE TYPE room_view AS ENUM ('ocean', 'mountains');
+CREATE TYPE expansion_type AS ENUM ('none', 'additional bed', 'private balcony');
+```
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|id                            |SERIAL                              |PRIMARY KEY
+|hotel_id                      |SERIAL                              |FOREIGN KEY REFERENCES hotel(id) ON DELETE CASCADE
+|price_per_day                 |integer                             |
+|surface_area                  |integer                             |
+|capacity                      |room_capacity                       |
+|damage_description            |text                                |
+|expansion                     |expansion_type                      |
+|view_type                     |room_view                           |
+
+### room_amenities
+```sql
+CREATE TYPE amenity_type AS ENUM ('TV', 'Fridge', 'AC');
+```
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|room_id                       |SERIAL                              |FOREIGN KEY REFERENCES room(id) ON DELETE CASCADE
+|amenity                       |amenity_type                        |
+|                              |                                    |PRIMARY KEY (room_id, amenity)
+
+### client
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|id                            |SERIAL                              |PRIMARY KEY
+|fullname                      |text                                |
+|adress_id                     |integer                             |FOREIGN KEY REFERENCES adress(id) ON DELETE SET NULL
+|ssn                           |text                                |
+|registration_date             |DATE                                |
+
+### reservation
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|id                            |SERIAL                              |PRIMARY KEY
+|client_id                     |integer                             |FOREIGN KEY REFERENCES client(id) ON DELETE SET NULL
+|room_id                       |integer                             |FOREIGN KEY REFERENCES room(id) ON DELETE SET NULL
+|start_date                    |DATE                                |
+|end_date                      |DATE                                |
+
+### rental
+|Attribute                     |Type                                |Constraints    
+|------------------------------|------------------------------------|------------------------
+|id                            |SERIAL                              |PRIMARY KEY
+|reservation_id                |integer                             |FOREIGN KEY REFERENCES reservation(id) ON DELETE SET NULL
+|payment                       |integer                             |
+
+## INDEXES
+```sql
+CREATE INDEX postalcode_ndx ON adress (postalcode);
+CREATE UNIQUE INDEX employee_ssn_idx ON employee (ssn);
+CREATE UNIQUE INDEX client_ssn_idx ON client (ssn);
+```
+
+## Triggers
+```sql
+CREATE OR REPLACE TRIGGER check_conflicting_reservation
+    BEFORE INSERT OR UPDATE ON reservation
+    FOR EACH ROW
+        EXECUTE FUNCTION validate_new_reservation();
+CREATE OR REPLACE FUNCTION validate_new_reservation() RETURNS TRIGGER AS
+$$
+DECLARE
+    conflicting_reservations integer;
+    conflicting_start_date DATE;
+    conflicting_end_date DATE;
+BEGIN
+    SELECT COUNT(*) FROM reservation WHERE
+    reservation.room_id = NEW.room_id AND
+    (
+        (NEW.start_date >= reservation.start_date AND NEW.start_date < reservation.end_date)
+    OR 
+        (NEW.end_date > reservation.start_date AND NEW.end_date <= reservation.end_date)
+    )
+    INTO conflicting_reservations;
+
+    [...]
+
+    IF conflicting_reservations > 0 THEN
+        RAISE EXCEPTION 'reservation [%, %] conflicts with reservation [%, %]. Room id: %',
+            NEW.start_date, NEW.end_date, conflicting_start_date, conflicting_end_date, NEW.room_id;
+
+    END IF;
+
+    RETURN NEW;
+END;
+$$
+LANGUAGE PLPGSQL;
+
+
+CREATE OR REPLACE TRIGGER ensure_one_manager_per_hotel
+    AFTER INSERT OR UPDATE ON employee_roles
+    FOR EACH ROW 
+        EXECUTE FUNCTION ensure_unique_manager();
+CREATE OR REPLACE FUNCTION ensure_unique_manager() RETURNS TRIGGER AS 
+$$
+DECLARE
+    num_managers integer;
+    hotel_id integer;
+BEGIN
+    SELECT works_in FROM employee
+    WHERE employee.id = NEW.employee_id
+    INTO hotel_id;
+
+    WITH hotel_employees AS (
+        SELECT id, works_in, role 
+        FROM employee JOIN employee_roles ON id = employee_id
+        WHERE works_in = hotel_id 
+    )
+    SELECT COUNT(*) FROM hotel_employees
+    WHERE role = 'manager'::employee_role
+    INTO num_managers;
+    
+
+
+    IF num_managers > 1 THEN
+        RAISE EXCEPTION 'Attempting to assign more than one manager to hotel %.', hotel_id;
+    END IF;
+
+    RETURN NEW;
+END;
+$$
+LANGUAGE PLPGSQL;
+
+```
 
  API Documentation
 

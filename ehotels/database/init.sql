@@ -175,22 +175,30 @@ LANGUAGE PLPGSQL;
 
 CREATE OR REPLACE FUNCTION ensure_unique_manager() RETURNS TRIGGER AS 
 $$
+DECLARE
+    num_managers integer;
+    hotel_id integer;
 BEGIN
+    SELECT works_in FROM employee
+    WHERE employee.id = NEW.employee_id
+    INTO hotel_id;
+
+    WITH hotel_employees AS (
+        SELECT id, works_in, role 
+        FROM employee JOIN employee_roles ON id = employee_id
+        WHERE works_in = hotel_id 
+    )
+    SELECT COUNT(*) FROM hotel_employees
+    WHERE role = 'manager'::employee_role
+    INTO num_managers;
     
-    IF (
-        SELECT NOT EXISTS (
-            SELECT employee_id, role
-            FROM 
-            employee JOIN employee_roles ON employee.id = employee_id
-            WHERE employee.works_in = NEW.works_in AND role = 'manager'::employee_role
-        )
-       )
-    THEN
-        RETURN NEW;
+
+
+    IF num_managers > 1 THEN
+        RAISE EXCEPTION 'Attempting to assign more than one manager to hotel %.', hotel_id;
     END IF;
 
-    RAISE EXCEPTION 'Attempting to assign more than one manager to hotel %.', NEW.id;
-    RETURN NULL;
+    RETURN NEW;
 END;
 $$
 LANGUAGE PLPGSQL;
@@ -802,10 +810,10 @@ CREATE OR REPLACE TRIGGER check_conflicting_reservation
     FOR EACH ROW
         EXECUTE FUNCTION validate_new_reservation();
 
--- CREATE OR REPLACE TRIGGER ensure_one_manager_per_hotel
---     BEFORE INSERT OR UPDATE ON employee
---     FOR EACH ROW 
---         EXECUTE FUNCTION ensure_unique_manager();
+CREATE OR REPLACE TRIGGER ensure_one_manager_per_hotel
+    AFTER INSERT OR UPDATE ON employee_roles
+    FOR EACH ROW 
+        EXECUTE FUNCTION ensure_unique_manager();
 
 ------------------ Views ------------------------
 CREATE OR REPLACE VIEW room_capacities_per_hotel AS

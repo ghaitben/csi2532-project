@@ -24,3 +24,58 @@ body {
     text-wrap: balance;
   }
 }
+
+.container {
+  display: flex; /* Active Flexbox pour le div parent */
+  justify-content: space-between; /* Répartit l'espace entre les éléments de manière égale */
+  align-items: center; /* Centre les éléments verticalement */
+  width: 50%; /* Définit la largeur du conteneur */
+  margin-top: 30px;
+  margin-left: 10px; /* Ajustement pour l'ombre */
+  margin-right: 10px;
+  padding: 20px; /* Ajoute de l'espace à l'intérieur du conteneur */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), /* Ombre horizontale */
+              0 2px 4px rgba(0, 0, 0, 0.06); /* Ombre verticale plus légère */
+}
+
+.container > div {
+  margin: 0 10px; /* Ajoute un peu d'espace autour de chaque div enfant */
+  font-family: '__Inter_aaf875', '__Inter_Fallback_aaf875';
+  width: 33.33%;
+}
+
+button {
+  display: block; /* Assure que le bouton s'affiche comme un bloc */
+  width: 100%; /* Le bouton prend toute la largeur du conteneur */
+  padding: 10px; /* Ajoute de l'espace à l'intérieur du bouton */
+  margin-top: 20px; /* Ajoute un peu d'espace au-dessus du bouton */
+  background-color: #007bff !important; /* Couleur de fond du bouton */
+  color: white; /* Couleur du texte du bouton */
+  border: none; /* Supprime la bordure du bouton */
+  border-radius: 5px; /* Ajoute des bords arrondis au bouton */
+  cursor: pointer; /* Change le curseur au survol du bouton */
+  width: 15%;
+  font-size: 80%;
+}
+
+button:hover {
+  background-color: #0056b3; /* Couleur de fond du bouton au survol */
+}
+
+.panel {
+  width: 50%;
+}
+
+.shadow-box {
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Effet d'ombre */
+  background-color: #f5f5f5; /* Fond gris très léger */
+  padding: 20px; /* Espace à l'intérieur du div */
+  margin: 20px 0; /* Marge autour du div pour le séparer des autres éléments */
+  border-radius: 5px; /* Coins arrondis pour le div */
+  margin-left: 25%;
+}
+
+.link {
+  color: #007bff; /* Couleur du lien */
+  text-decoration: none; /* Supprime le soulignement du lien */
+}

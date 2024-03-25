@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, FormEvent } from "react";
+import { useEffect } from "react";
+import StarRating from '../components/StarRating/StarRating';
 import { useRouter } from "next/navigation";
-
+import { useRef } from "react";
 
 function CountryList() {
     return [
@@ -252,9 +254,20 @@ function CountryList() {
 export default function RoomSearchForm() {
     const [rooms, setRooms] = useState([]);
     const [error, setError] = useState<string[] | null>(null);
+    const [domLoaded, setDomLoaded] = useState(false);
     const router = useRouter();
+    const bottomElementRef = useRef(null);
+
+    useEffect(() => {
+        setDomLoaded(true);
+      }, []);
+
+    const scrollToBottom = () => {
+        bottomElementRef.current.scrollIntoView({ behavior: 'smooth' });
+    };
+      
     function  getHotelChains (){
-        return ['marriot' , 'farimont' ,'Hilton' ];
+        return ['Hotel-Chain-1', 'Hotel-Chain-2','Hotel-Chain-3' ];
     }
     function isEmpty(o:any){
         return o===undefined || o===null ||o==='';
@@ -269,21 +282,30 @@ export default function RoomSearchForm() {
 
         let payload = {};
         formData.forEach((value, key) => { if (!isEmpty(value)) payload[key] = value});
-        const res = await fetch("http://localhost:8000/hms/search_rooms", {
+
+        fetch('http://localhost:8000/hms/search_rooms', {
             method: 'POST',
-            body: JSON.stringify(payload)
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        }).then(response => response.json())
+        .then(data => {
+            setRooms(data);
+            scrollToBottom();
+        }).catch((error) => {
+            console.log('Error:', error);
         });
-
-        if (!res.ok) {
-            errs.push("Failed to commit registration. Try again in a few seconds.");
-            return;
-        }
-        setRooms(res.data);
-
         
     }
 
+    function handleBook() {
+        router.push('/rooms/book');
+    }
+
     return (
+        <>
+      { domLoaded &&  
       <section className="bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
             <a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
@@ -317,11 +339,11 @@ export default function RoomSearchForm() {
                     <form className="space-y-4 md:space-y-6" onSubmit={onSubmit}>
                         <div>
                             <label htmlFor="res_start_date" className="mb-2 text-sm font-medium text-gray-900 dark:text-white">From</label>
-                            <input type="text" name="res_start_date" id="res_start_date" className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="dd/mm/yyyy" required="required"  />
+                            <input type="date" name="res_start_date" id="res_start_date" className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="dd/mm/yyyy" required="required"  />
                         </div>
                         <div>
                             <label htmlFor="res_end_date" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">To</label>
-                            <input type="text" name="res_end_date" id="res_end_date" className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="dd/mm/yyyy" required="required" />
+                            <input type="date" name="res_end_date" id="res_end_date" className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="dd/mm/yyyy" required="required" />
                         </div>
                         <div>
                             <label htmlFor="capacity" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Room capacity</label>
@@ -333,14 +355,14 @@ export default function RoomSearchForm() {
                             <option value="">Choose a hotel chain</option>
                             {getHotelChains().map((hotel_chain_name, ndx) => {
                                 return (
-                                <option key={ndx} value={ndx}>{hotel_chain_name}</option>
+                                <option key={ndx} value={hotel_chain_name}>{hotel_chain_name}</option>
                                 );
                             })}
                           </select>
                         </div>
                         <div>
                             <label htmlFor="hotel_rating" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hotel rating</label>
-                            <input type="number" name="hotel_rating" id="hotel_rating" className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="" required="required" />
+                            <input type="number" name="hotel_rating" id="hotel_rating" min='1' max='5' className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="" required="required" />
                         </div>
 
                         <div>
@@ -370,52 +392,31 @@ export default function RoomSearchForm() {
                     </form>
                 </div>
             </div>
-        </div>
-        <div>
-            <table>
-                <tr>
-                    <th>Hotel Id</th>
-                    <th>Chain name</th>
-                    <th>Rating</th>
-                    <th>Price per day</th>
-                    <th>Capacity</th>
-                    <th>Country</th>
-                    <th>City</th>
-                    <th>Street</th>
-                </tr>
-                {rooms.map((room, ndx) => {
-                                return (
-                                <tr>
-                                    <td>
-                                        {room.hotel_id}
-                                    </td>
-                                    <td>
-                                        {room.chain_name}
-                                    </td>
-                                    <td>
-                                        {room.hotel_rating}
-                                    </td>
-                                    <td>
-                                        {room.price_per_day}
-                                    </td>
-                                    <td>
-                                        {room.capacity}
-                                    </td>
-                                    <td>
-                                        {room.country}
-                                    </td>
-                                    <td>
-                                        {room.city}
-                                    </td>
-                                    <td>
-                                        {room.street}
-                                    </td>
-                                </tr>
-                                );
-                            })}
-            </table>
+            <div ref={bottomElementRef}></div>
+            {
+                rooms.length > 0 &&
+                rooms.map((room, index) => {
+                    return (
+                            <div className="container">
+                                <div>
+                                    {room.hotel_chain_name}<br></br>
+                                    <span style={{fontSize: "xx-small"}}>{room.city}, {room.country_name}</span>
+                                </div>
+                                <div>
+                                    ${room.room_price}/night
+                                    <StarRating rating={room.hotel_rating}/>
+                                </div>
+                                <div>
+                                    Capacity: {room.capacity}
+                                </div>
+                                <button onClick={handleBook}>Book it</button>
+                            </div>
+                    )
+                })
+            }
         </div>
       </section>
+        }
+      </>
     );
 }
-

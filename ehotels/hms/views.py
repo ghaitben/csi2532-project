@@ -104,7 +104,7 @@ def search_rooms(request):
                 INNER JOIN hotel_chain ON hotel_chain_id = hotel_chain.id
                 INNER JOIN adress ON adress.id = hotel.adress_id
                 INNER JOIN country ON adress.country_id = country.id
-                INNER JOIN reservation ON reservation.room_id = room.id
+                LEFT JOIN reservation ON reservation.room_id = room.id
                 WHERE country.name = %s
                   AND city = %s
                   AND (%s IS NULL OR hotel_chain.name = %s)
@@ -119,10 +119,8 @@ def search_rooms(request):
                         HAVING COUNT(room.id) = %s
                     ))
                 
-                  AND start_date NOT BETWEEN %s AND %s
-                  AND end_date NOT BETWEEN %s AND %s
-                  AND NOT %s < (SELECT MIN(start_date) FROM reservation)
-                  AND NOT %s > (SELECT MAX(end_date) FROM reservation)
+                  AND (start_date NOT BETWEEN %s AND %s OR start_date IS NULL)
+                  AND (end_date NOT BETWEEN %s AND %s OR end_date IS NULL)
                 """
     
             # Execute the query with parameters
@@ -133,7 +131,6 @@ def search_rooms(request):
                                         capacity, capacity,
                                         room_price, room_price,
                                         total_rooms, total_rooms,
-                                        res_start_date, res_end_date,
                                         res_start_date, res_end_date,
                                         res_start_date, res_end_date,
                                         ])

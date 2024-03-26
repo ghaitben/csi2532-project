@@ -121,6 +121,8 @@ def search_rooms(request):
                 
                   AND (start_date NOT BETWEEN %s AND %s OR start_date IS NULL)
                   AND (end_date NOT BETWEEN %s AND %s OR end_date IS NULL)
+                  AND NOT %s < (SELECT MIN(start_date) FROM reservation)
+                  AND NOT %s > (SELECT MAX(end_date) FROM reservation)
                 """
     
             # Execute the query with parameters
@@ -131,7 +133,6 @@ def search_rooms(request):
                                         capacity, capacity,
                                         room_price, room_price,
                                         total_rooms, total_rooms,
-                                        res_start_date, res_end_date,
                                         res_start_date, res_end_date,
                                         res_start_date, res_end_date,
                                         ])

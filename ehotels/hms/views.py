@@ -121,8 +121,6 @@ def search_rooms(request):
                 
                   AND (start_date NOT BETWEEN %s AND %s OR start_date IS NULL)
                   AND (end_date NOT BETWEEN %s AND %s OR end_date IS NULL)
-                  AND NOT %s < (SELECT MIN(start_date) FROM reservation)
-                  AND NOT %s > (SELECT MAX(end_date) FROM reservation)
                 """
     
             # Execute the query with parameters

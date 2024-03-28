@@ -210,10 +210,81 @@ def rent_room(request):
                 return JsonResponse({"message": "Missing required fields"}, status=400)
         else:
             return JsonResponse({"message": "Client authentication failed"}, status=401)
-    
-    
-    pass
-       
+
+def add_room(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user_type = data.get("user_type", None)
+        
+        # Only employees are able to add rooms
+        if is_authenticated(data.get("user_id"), user_type) and user_type == "employee":
+            # Extract rental parameters
+            hotel_id = data.get('hotel_id', None)
+            price_per_day = data.get('price_per_day', None)
+            surface_area = data.get("surface_area")
+            capacity = data.get("room_capacity")
+            damage_description = data.get("damage_description")
+            expansion_type = data.get("expansion_type")
+            view_type = data.get("view_type")
+        
+            if hotel_id and price_per_day and surface_area and capacity and damage_description and expansion_type and view_type:
+                    
+                    with connection.cursor() as cursor:
+                        # Insert rental
+                        cursor.execute(
+                            "INSERT INTO room (hotel_id, price_per_day, surface_area, capacity, damage_description, expansion, view_type) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                            [hotel_id, price_per_day, surface_area, capacity, damage_description, expansion_type, view_type]
+                        )
+                        room_id = cursor.fetchone()[0]
+            
+                    return JsonResponse({"message": "Room addition success", "room_id": room_id}, status=200)
+            else:
+                return JsonResponse({"message": "Missing required fields"}, status=400)
+        else:
+            return JsonResponse({"message": "Client authentication failed"}, status=401)      
+
+
+@csrf_exempt
+def add_hotel(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user_type = data.get("user_type", None)
+        
+        # Only employees are able to add rooms
+        if is_authenticated(data.get("user_id"), user_type) and user_type == "employee":
+            # Extract rental parameters
+            rating = data.get('rating', None)
+            hotel_chain_id = data.get('hotel_chain_id', None)
+            
+            address_street = data.get('street')
+            address_city = data.get("city")
+            address_country = data.get("country")
+            address_postal_code = data.get("postal_code")
+        
+            if hotel_chain_id and rating:
+                    
+                    with connection.cursor() as cursor:
+                        
+                         # Insert address
+                        cursor.execute(
+                            "INSERT INTO adress (street, city, country_id, postalcode) VALUES (%s, %s, %s, %s) RETURNING id",
+                            [address_street, address_city, address_country, address_postal_code]
+                        )
+                        address_id = cursor.fetchone()[0]
+                        
+                        # Insert rental
+                        cursor.execute(
+                            "INSERT INTO hotel (rating, hotel_chain_id, adress_id) VALUES (%s, %s, %s) RETURNING id",
+                            [rating, hotel_chain_id, address_id]
+                        )
+                        hotel_id = cursor.fetchone()[0]
+            
+                    return JsonResponse({"message": "Hotel addition success", "hotel_id": hotel_id}, status=200)
+            else:
+                return JsonResponse({"message": "Missing required fields"}, status=400)
+        else:
+            return JsonResponse({"message": "Client authentication failed"}, status=401)      
+
     
 
 def authenticate(fullname, ssn, user_type):

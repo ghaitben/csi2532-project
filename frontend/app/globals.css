@@ -17,6 +17,7 @@
 }
 
 body {
+    background-color: rgb(17 24 39);
 }
 
 @layer utilities {
@@ -44,6 +45,8 @@ body {
   width: 33.33%;
 }
 
+/* Messes up something, re-enable if you need this class.*/
+@media DISABLED {
 button {
   display: block; /* Assure que le bouton s'affiche comme un bloc */
   width: 100%; /* Le bouton prend toute la largeur du conteneur */
@@ -56,6 +59,7 @@ button {
   cursor: pointer; /* Change le curseur au survol du bouton */
   width: 15%;
   font-size: 80%;
+}
 }
 
 button:hover {

@@ -1,12 +1,13 @@
 "use client";
-import React, { useState, FormEvent } from "react";
+import React, { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../authentication";
+import { useAuth, useError } from "../authentication";
 
 export default function LoginForm() {
     const [isEmployeeLogin, setEmployeeLogin] = useState<boolean>(false);
-    const [error, setError] = useState<string[] | null>(null);
-    const { user, login, logout } = useAuth();
+    const { error, setError } = useError();
+    const { user, userType, login, logout } = useAuth();
+
     const router = useRouter();
 
     async function onSubmit(event: FormEvent<HTMLFormEvent>) {
@@ -45,12 +46,9 @@ export default function LoginForm() {
             return;
         }
 
-        localStorage.setItem('user', formData.get('fullname'));
-        login(localStorage.getItem('user'));
+        login(formData.get('fullname'), payload['user_type']);
 
         router.push("/");
-        // just in case this router thing returns.
-        return;
     }
 
     return (

@@ -215,6 +215,8 @@ def add_room(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         user_type = data.get("user_type", None)
+
+        print(user_type, data.get("user_id"))
         
         # Only employees are able to add rooms
         if is_authenticated(data.get("user_id"), user_type) and user_type == "employee":
@@ -227,10 +229,10 @@ def add_room(request):
             expansion_type = data.get("expansion_type")
             view_type = data.get("view_type")
         
-            if hotel_id and price_per_day and surface_area and capacity and damage_description and expansion_type and view_type:
+            if hotel_id and price_per_day and surface_area and capacity and expansion_type and view_type:
                     
                     with connection.cursor() as cursor:
-                        # Insert rental
+                        # Insert room
                         cursor.execute(
                             "INSERT INTO room (hotel_id, price_per_day, surface_area, capacity, damage_description, expansion, view_type) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
                             [hotel_id, price_per_day, surface_area, capacity, damage_description, expansion_type, view_type]
@@ -241,6 +243,8 @@ def add_room(request):
             else:
                 return JsonResponse({"message": "Missing required fields"}, status=400)
         else:
+            print(auth_clients)
+            print(auth_employees)
             return JsonResponse({"message": "Client authentication failed"}, status=401)      
 
 

@@ -34,7 +34,6 @@ export default function LoginForm() {
         formData.forEach((value, key) => payload[key] = value);
         payload['user_type'] = isEmployeeLogin ? 'employee' : 'client';
 
-        formData.forEach((value, key) => payload[key] = value);
         const res = await fetch("http://localhost:8000/hms/login", {
             method: 'POST',
             body: JSON.stringify(payload)
@@ -46,7 +45,9 @@ export default function LoginForm() {
             return;
         }
 
-        login(formData.get('fullname'), payload['user_type']);
+        const res_json = await res.json();
+
+        login(formData.get('fullname'), payload['user_type'], res_json.user_id);
 
         router.push("/");
     }

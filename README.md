@@ -405,3 +405,41 @@ This JSON body represents a room reservation request by a client with the specif
     }
 
 401 Unauthorized: Client authentication failed.
+
+
+
+
+### 5.Add Room
+
+http post /add_room
+
+sample request body
+
+{
+    "user_type": "employee",
+    "user_id": 801,
+    "hotel_id": 81,
+    "price_per_day": 300,
+    "surface_area": 300,
+    "room_capacity" : "simple",
+    "damage_description" : "good",
+    "expansion_type" : "none",
+    "view_type": "ocean"
+}
+
+### 5.Add Hotel
+
+http post /add_hotel
+
+sample request body
+
+{
+    "user_type": "employee",
+    "user_id": 801,
+    "rating": 3,
+    "hotel_chain_id": 1,
+    "street" : "bab",
+    "city" : "heath",
+    "country" : "5",
+    "postal_code": "postaa"
+}

@@ -24,7 +24,11 @@ const RoomsPage = () => {
         router.push('/rooms/book');
     }
 
-    function handleRent() {
+    function handleRent(room) {
+        localStorage.removeItem("room_price");
+        localStorage.removeItem("room_id");
+        localStorage.setItem("room_price", room.room_price);
+        localStorage.setItem("room_id", room.room_id);
         router.push('/rooms/rent');
     }
 
@@ -45,7 +49,7 @@ const RoomsPage = () => {
                             Capacity: {room.capacity}
                         </div>
                         <button onClick={() => handleBook(room.room_id)} id={"Book" + room.room_id} className="button">Book it</button>
-                        {myUserType === "employee" && <button onClick={() => handleRent(room.room_id)} id={"Rent" + room.room_id} style={{ marginLeft: "20px" }} className="button">Rent</button>}
+                        {myUserType === "employee" && <button onClick={() => handleRent(room)} id={"Rent" + room.room_id} style={{ marginLeft: "20px" }} className="button">Rent</button>}
                     </div>
                 ))}
         </div>

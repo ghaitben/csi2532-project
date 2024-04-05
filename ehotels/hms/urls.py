@@ -8,5 +8,7 @@ urlpatterns = [
         path("reserve_room", views.reserve_room),
         path("rent_room", views.rent_room),
         path("add_room", views.add_room),
-        path("add_hotel", views.add_hotel)
+        path("add_hotel", views.add_hotel),
+        path("delete_room", views.delete_room),
+        path("delete_hotel", views.delete_hotel)
 ]

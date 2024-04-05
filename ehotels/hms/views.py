@@ -287,8 +287,55 @@ def add_hotel(request):
             else:
                 return JsonResponse({"message": "Missing required fields"}, status=400)
         else:
-            return JsonResponse({"message": "Client authentication failed"}, status=401)      
+            return JsonResponse({"message": "Client authentication failed"}, status=401)
+        
+def delete_room(request):
+    if request.method == 'DELETE':
+        data = json.loads(request.body)
+        user_type = data.get("user_type", None)
+        
+        # Only employees are able to delete rooms
+        if is_authenticated(data.get("user_id"), user_type) and user_type == "employee":
+            
+            room_id = data.get('room_id', None)
 
+        
+            if room_id:
+                with connection.cursor() as cursor:
+    
+                    cursor.execute(
+                        "DELETE FROM room WHERE id = %s",
+                        [room_id]
+                    )
+            
+                return JsonResponse({"message": "Room deleted"}, status=200)
+            else:
+                return JsonResponse({"message": "Missing required fields"}, status=400)
+        else:
+            return JsonResponse({"message": "Client authentication failed"}, status=401) 
+
+def delete_hotel(request):
+    if request.method == 'DELETE':
+        data = json.loads(request.body)
+        user_type = data.get("user_type", None)
+        
+        # Only employees are able to delete hotels
+        if is_authenticated(data.get("user_id"), user_type) and user_type == "employee":
+            hotel_id = data.get('hotel_id', None)
+        
+            if hotel_id:
+                with connection.cursor() as cursor:
+                
+                    cursor.execute(
+                        "DELETE FROM hotel WHERE id = %s",
+                        [hotel_id]
+                    )
+            
+                return JsonResponse({"message": "hotel deleted"}, status=200)
+            else:
+                return JsonResponse({"message": "Missing required fields"}, status=400)
+        else:
+            return JsonResponse({"message": "Client authentication failed"}, status=401) 
     
 
 def authenticate(fullname, ssn, user_type):

@@ -443,3 +443,25 @@ sample request body
     "country" : "5",
     "postal_code": "postaa"
 }
+
+### 6.Delete Room
+
+http delete /delete_room
+
+sample request body
+
+{
+    "user_type": "employee",
+    "user_id": 801,
+    "room_id": 1602
+}
+
+### 7.Delete Hotel
+
+http delete /delete_hotel
+
+{
+    "user_type": "employee",
+    "user_id": 801,
+    "hotel_id": 82 
+}

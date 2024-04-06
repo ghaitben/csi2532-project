@@ -7,7 +7,7 @@ import { useEffect } from "react";
 export default function PayRentPage() {
 
     const router = useRouter();
-    const [roomID, setRoomID] = React.useState("");
+    // const [roomID, setRoomID] = React.useState("");
     const [paymentAmount, setPaymentAmount] = React.useState(0.0);
     const [rentalMessage, setRentalMessage] = React.useState("");
     const [error, setError] = React.useState("");
@@ -18,8 +18,8 @@ export default function PayRentPage() {
             router.push("/login");
             return;
         }
-        setRoomID(localStorage.getItem("room_id"));
-        setPaymentAmount(parseFloat(localStorage.getItem("room_price")));
+        // setRoomID(localStorage.getItem("room_id"));
+        // setPaymentAmount(parseFloat(localStorage.getItem("room_price")));
     }, []);
 
     function isEmpty(value: any) {
@@ -33,8 +33,9 @@ export default function PayRentPage() {
         formData.forEach((value, key) => { if (!isEmpty(value)) payload[key] = value});
 
         payload['user_type'] = localStorage.getItem('userType');
-        payload['user_id'] = localStorage.getItem('userId');
+        payload['user_id'] = Number(localStorage.getItem('userId'));
 
+        console.log(payload);
         fetch("http://localhost:8000/hms/rent_room", {
             method: "POST",
             headers: {
@@ -54,7 +55,7 @@ export default function PayRentPage() {
 
     return (
         <div className="panel shadow-box">
-            <h1 className="text-3xl font-semibold text-gray-800 dark:text-white">Rent a room (ID: {roomID})</h1>
+            <h1 className="text-3xl font-semibold text-gray-800 dark:text-white">Rent a room</h1>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Fill in the form to check-in</p>
             <form className="mt-4" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 gap-6">
@@ -64,7 +65,7 @@ export default function PayRentPage() {
                     </label>
                     <label className="block">
                         <span className="text-gray-700 dark:text-gray-400">Payment amount</span>
-                        <input type="number" step="0.01" name="payment" value={paymentAmount} placeholder="Enter the payed amount" id="payment" className="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" required />
+                        <input type="number" name="payment" placeholder="Enter the payed amount" id="payment" className="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" required />
                     </label>
                     <button type="submit" className="button">Payment</button>
                     {rentalMessage !== "" ? <p className="ok_message">{rentalMessage}</p> : null}

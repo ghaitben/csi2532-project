@@ -273,6 +273,8 @@ export default function RegistrationForm() {
 
         let payload = {};
         formData.forEach((value, key) => payload[key] = value);
+
+        console.log(payload);
         const res = await fetch("http://localhost:8000/hms/register", {
             method: 'POST',
             body: JSON.stringify(payload)

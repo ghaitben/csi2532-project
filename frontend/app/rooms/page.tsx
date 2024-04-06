@@ -278,7 +278,9 @@ export default function RoomSearchForm() {
         formData.forEach((value, key) => { if (!isEmpty(value)) payload[key] = value});
 
         payload['user_type'] = localStorage.getItem('userType');
-        payload['user_id'] = localStorage.getItem('userId');
+        payload['user_id'] = Number(localStorage.getItem('userId'));
+
+        console.log(payload);
 
         fetch('http://localhost:8000/hms/search_rooms', {
             method: 'POST',
@@ -341,7 +343,7 @@ export default function RoomSearchForm() {
                         </div>
                         <div>
                             <label htmlFor="capacity" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Room capacity</label>
-                            <input type="number" name="capacity" id="capacity" className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="1" />
+                            <input type="text" name="capacity" id="capacity" className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="simple, double" />
                         </div>
                         <div>
                           <label htmlFor="hotel_chain_name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hotel chain</label>
@@ -361,11 +363,11 @@ export default function RoomSearchForm() {
 
                         <div>
                           <label htmlFor="country" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Country</label>
-                          <select name="country" id="country" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required="required">
+                          <select name="country_name" id="country" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required="required">
                             <option value="">Choose a country</option>
                             {CountryList().map((country, ndx) => {
                                 return (
-                                <option key={ndx} value={ndx}>{country}</option>
+                                <option key={ndx} value={country}>{country}</option>
                                 );
                             })}
                           </select>

@@ -35,14 +35,14 @@ def register(request):
                 address_id = cursor.fetchone()[0]
                 
                 # Insert client
-                if user_type == "client" or not user_type:
+                if user_type == "client" or not hotel_id:
                     cursor.execute(
                         "INSERT INTO client (fullname, adress_id, ssn) VALUES (%s, %s, %s)",
                         [fullname, address_id, ssn]
                     )
                     return JsonResponse({"message": "Client registered successfully"}, status=201)
                 
-                elif user_type == "employee": 
+                elif user_type == "employee" or hotel_id: 
                     cursor.execute(
                         "INSERT INTO employee (fullname, adress_id, ssn, works_in) VALUES (%s, %s, %s, %s)",
                         [fullname, address_id, ssn, hotel_id]
@@ -77,7 +77,7 @@ def login_user(request):
     
 
 def search_rooms(request):
-    if request.method == 'GET':
+    if request.method == 'GET' or request.method == "POST":
         data = json.loads(request.body)
         user_type = data.get("user_type", None)
         

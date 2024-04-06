@@ -14,13 +14,15 @@ export default function BookPage() {
     
     function handleSubmit(event: FormEvent) {
         event.preventDefault();
-        const payload = [];
+        const payload = {};
         payload["user_type"] = localStorage.getItem("userType");
-        payload["user_id"] = localStorage.getItem("userId");
-        payload["client_id"] = localStorage.getItem("userId"); //TODO : Temporary beacause we don't have yet an endpoint that returns the client list with their client Ids
+        payload["user_id"] = Number(localStorage.getItem("userId"));
+        payload["client_id"] = Number(localStorage.getItem("userId")); //TODO : Temporary beacause we don't have yet an endpoint that returns the client list with their client Ids
         payload["room_id"] = localStorage.getItem("room_id");
         payload["start_date"] = (document.getElementById("start_date") as HTMLInputElement).value;
         payload["end_date"] = (document.getElementById("end_date") as HTMLInputElement).value;
+
+        console.log(payload);
 
         fetch("http://localhost:8000/hms/reserve_room", {
             method: "POST",

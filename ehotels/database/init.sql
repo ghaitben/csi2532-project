@@ -141,18 +141,18 @@ CREATE TABLE IF NOT EXISTS testing_constants (
     value text NOT NULL
 );
 INSERT INTO testing_constants (label, value) VALUES 
-('kNumHotelChains', 10::text),
+('kNumHotelChains', 5::text),
 ('kNumHotelsPerHC', 8::text),
 ('kNumEmployeePerHotel', 10::text),
-('kNumRoomsPerHotel', 20::text),
-('kNumClients', 1200::text),
-('kMaxReservationsPerRoom', 10::text),
+('kNumRoomsPerHotel', 10::text),
+('kNumClients', 100::text),
+('kMaxReservationsPerRoom', 0::text),
 ('kNumHCCentralOffices', 4::text),
 ('kNumHCContactEmails', 4::text),
 ('kNumHCContactPhones', 4::text),
 ('kNumHotelContactEmails', 4::text),
 ('kNumHotelContactPhones', 4::text),
-('kNumRentals', 31::text);
+('kNumRentals', 0::text);
 
 -- Helper functions --
 CREATE OR REPLACE FUNCTION k(constant_name text) RETURNS text AS 

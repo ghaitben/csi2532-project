@@ -42,7 +42,7 @@ const RoomsPage = () => {
                             <span style={{ fontSize: "xx-small" }}>{room.city}, {room.country_name}</span>
                         </div>
                         <div>
-                            ${room.room_price}/night
+                            ${room.price_per_day}/night
                             <StarRating rating={room.hotel_rating} />
                         </div>
                         <div>

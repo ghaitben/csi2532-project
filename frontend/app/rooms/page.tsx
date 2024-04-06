@@ -291,6 +291,7 @@ export default function RoomSearchForm() {
         }).then(response => response.json())
         .then(data => {
             localStorage.setItem('rooms', JSON.stringify(data));
+            console.log(localStorage.getItem('rooms'));
             setError(null);
             router.push('/rooms/list');
         }).catch((error) => {
